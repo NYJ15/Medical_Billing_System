@@ -12,6 +12,20 @@ Base = declarative_base()
 Base.query = db.query_property()
 
 
+class User(Base):
+    """User table containing login information of the user."""
+
+    __tablename__ = 'user'
+
+    id = Column(BIGINT(20), primary_key=True)
+    first_name = Column(String(255, 'utf8mb4_unicode_ci'), nullable=False)
+    last_name = Column(String(255, 'utf8mb4_unicode_ci'), nullable=False)
+    email = Column(String(255, 'utf8mb4_unicode_ci'),
+                   nullable=False, unique=True)
+    password = Column(String(255, 'utf8mb4_unicode_ci'))
+    created_at = Column(TIMESTAMP)
+
+
 class Bills(Base):
     """Bills table keeping the record of bills uploaded."""
 
@@ -24,4 +38,4 @@ class Bills(Base):
     hospital_name = Column(String(255, 'utf8mb4_unicode_ci'), nullable=False)
     amount = Column(INTEGER)
     service_date = Column(TIMESTAMP)
-    bill_image =  Column(String(255, 'utf8mb4_unicode_ci'))
+    bill_image = Column(String(255, 'utf8mb4_unicode_ci'))

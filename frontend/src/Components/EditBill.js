@@ -16,7 +16,8 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import dayjs from 'dayjs';
 import { useNavigate } from "react-router-dom";
-
+import Cookies from 'universal-cookie';
+import jwt_decode from "jwt-decode";
 
 const defaultTheme = createTheme();
 
@@ -28,6 +29,8 @@ function EditBill() {
     const [data, setData] = React.useState("");
     const [previousBill, setPreviousBill] = React.useState("");
     const navigate = useNavigate();
+    const cookies = new Cookies();
+
     const initialValues = {
         address: data.address,
         amount: data.amount,
@@ -46,7 +49,15 @@ function EditBill() {
     let { id } = useParams();
 
     React.useEffect(() => {
-        axios.get(baseURL + "upload_bill/" + id)
+        const tokenStr = cookies.get('access_token')
+        let decodedToken = jwt_decode(tokenStr);
+        let currentDate = new Date();
+        if (decodedToken.exp * 1000 < currentDate.getTime()) {
+            cookies.remove("access_token", { path: '/' })
+            window.location = "/"
+        }
+
+        axios.get(baseURL + "upload_bill/" + id,  { headers: { "Authorization": `Bearer ${tokenStr}` } })
             .then((response) => {
                 setData(response.data['result'])
                 setValues(response.data['result'])
@@ -74,10 +85,10 @@ function EditBill() {
         final_data.append("hospitalName", event.target.hospitalName.value)
         final_data.append("billAmount", event.target.billAmount.value)
         final_data.append("serviceDate", serviceDate)
-        
+        const tokenStr = cookies.get('access_token')
         axios
-            .put(baseURL + 'upload_bill/' + data.id,
-                final_data
+            .put(baseURL + 'upload_bill/' + data.id,final_data, { headers: { "Authorization": `Bearer ${tokenStr}` } },
+                
             )
             .then(response => {
                 alert(response.data['result'])

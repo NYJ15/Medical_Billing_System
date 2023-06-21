@@ -15,6 +15,9 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import configData from "../config.json";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import Cookies from 'universal-cookie';
+import jwt_decode from "jwt-decode";
+
 const defaultTheme = createTheme();
 
 export default function UploadBill() {
@@ -23,6 +26,7 @@ export default function UploadBill() {
     const [serviceDate, setServiceDate] = React.useState(null);
     const navigate = useNavigate();
     const baseURL = configData.BACKEND_URL
+    const cookies = new Cookies();
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -35,10 +39,12 @@ export default function UploadBill() {
         final_data.append("billAmount", event.target.billAmount.value)
         final_data.append("serviceDate", serviceDate)
         
+        const tokenStr = cookies.get('access_token')
         axios
             .post(baseURL + 'upload_bill', 
                 final_data, {headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    "Authorization": `Bearer ${tokenStr}`
                   }}
             )
             .then(response => {
@@ -51,6 +57,14 @@ export default function UploadBill() {
     };
 
     React.useEffect(() => {
+        const tokenStr = cookies.get('access_token')
+        let decodedToken = jwt_decode(tokenStr);
+        let currentDate = new Date();
+        if (decodedToken.exp * 1000 < currentDate.getTime()) {
+            cookies.remove("access_token", { path: '/' })
+            window.location = "/"
+        }
+
         if (selectedImage) {
             setImageUrl(URL.createObjectURL(selectedImage));
         }

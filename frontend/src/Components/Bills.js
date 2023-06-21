@@ -5,11 +5,13 @@ import configData from "../config.json";
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import Cookies from 'universal-cookie';
+import jwt_decode from "jwt-decode";
 
 function Bills() {
     const baseURL = configData.BACKEND_URL
     const [data, setData] = React.useState(null);
-
+    const cookies = new Cookies();
     const columns = [
         { field: 'id', headerName: 'ID', width: 100, headerClassName: "table-header" },
         { field: 'first_name', headerName: 'First Name', width: 140, headerClassName: "table-header" },
@@ -61,7 +63,15 @@ function Bills() {
     ];
 
     React.useEffect(() => {
-        axios.get(baseURL + 'upload_bill')
+        const tokenStr = cookies.get('access_token')
+        let decodedToken = jwt_decode(tokenStr);
+        let currentDate = new Date();
+        if (decodedToken.exp * 1000 < currentDate.getTime()) {
+            cookies.remove("access_token", { path: '/' })
+            window.location = "/"
+        }
+
+        axios.get(baseURL + 'upload_bill',  { headers: { "Authorization": `Bearer ${tokenStr}` } })
             .then((response) => {
                 setData(response.data['result']);
             });

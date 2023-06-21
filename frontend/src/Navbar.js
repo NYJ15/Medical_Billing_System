@@ -10,9 +10,11 @@ import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
+import Cookies from 'universal-cookie';
 
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
+  const cookies = new Cookies();
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
@@ -26,6 +28,13 @@ function ResponsiveAppBar() {
   const handleCloseNavMenu2 = () => {
     setAnchorElNav(null);
     window.location = "/create"
+  };
+
+  const logout = () => {
+    cookies.remove("access_token", { path: '/' })
+    setAnchorElNav(null);
+    handleCloseNavMenu();
+    window.location.reload();
   };
 
   return (
@@ -86,6 +95,9 @@ function ResponsiveAppBar() {
               <MenuItem key="Upload Bill" onClick={handleCloseNavMenu}>
                 <Typography textAlign="center">Upload Bill</Typography>
               </MenuItem>
+              <MenuItem onClick={logout} id="logout" 
+              style={{ color: "black", fontFamily: 'Playfair Display' }}>Logout</MenuItem>
+
             </Menu>
           </Box>
           <VaccinesIcon sx={{ display: { xs: 'flex', md: 'none' }, mr: 1 }} />
@@ -121,6 +133,13 @@ function ResponsiveAppBar() {
               sx={{ my: 2, color: 'white', display: 'block' }}
             >
               Upload Bill
+            </Button>
+            <Button
+              key="Upload Bill"
+              onClick={logout}
+              sx={{ my: 2, color: 'white', display: 'block' }}
+            >
+              Logout
             </Button>
           </Box>
         </Toolbar>
