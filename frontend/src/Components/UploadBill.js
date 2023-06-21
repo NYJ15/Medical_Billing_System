@@ -12,20 +12,44 @@ import InputAdornment from '@mui/material/InputAdornment';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-
+import configData from "../config.json";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 const defaultTheme = createTheme();
 
 export default function UploadBill() {
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        const data = new FormData(event.currentTarget);
-        console.log({
-            email: data.get('email'),
-            password: data.get('password'),
-        });
-    };
     const [selectedImage, setSelectedImage] = React.useState(null);
     const [imageUrl, setImageUrl] = React.useState(null);
+    const [serviceDate, setServiceDate] = React.useState(null);
+    const navigate = useNavigate();
+    const baseURL = configData.BACKEND_URL
+
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        const final_data = new FormData();
+        final_data.append("image", selectedImage);
+        final_data.append("firstName", event.target.firstName.value)
+        final_data.append("lastName", event.target.lastName.value)
+        final_data.append("address", event.target.address.value)
+        final_data.append("hospitalName", event.target.hospitalName.value)
+        final_data.append("billAmount", event.target.billAmount.value)
+        final_data.append("serviceDate", serviceDate)
+        
+        axios
+            .post(baseURL + 'upload_bill', 
+                final_data, {headers: {
+                    'Content-Type': 'multipart/form-data'
+                  }}
+            )
+            .then(response => {
+                alert(response.data['result'])
+                navigate('/')
+            }).catch(error => {
+                console.log(error)
+            });
+        
+    };
+
     React.useEffect(() => {
         if (selectedImage) {
             setImageUrl(URL.createObjectURL(selectedImage));
@@ -61,7 +85,6 @@ export default function UploadBill() {
                             </Grid>
                             <Grid item xs={12} sm={6}>
                                 <TextField
-
                                     fullWidth
                                     id="lastName"
                                     label="Patient's Last Name"
@@ -71,7 +94,6 @@ export default function UploadBill() {
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
-
                                     fullWidth
                                     id="address"
                                     label="Patient's Address"
@@ -81,7 +103,6 @@ export default function UploadBill() {
                             </Grid>
                             <Grid item xs={12}>
                                 <TextField
-
                                     fullWidth
                                     name="hospitalName"
                                     label="Hospital Name"
@@ -92,10 +113,12 @@ export default function UploadBill() {
                             <Grid item xs={12}>
                                 <TextField
                                     fullWidth
+                                    required
                                     name="billAmount"
                                     label="Bill Amount"
                                     id="billAmount"
                                     autoComplete="bill-amount"
+                                    type="number" pattern="[0-9]*" inputmode="numeric"
                                     InputProps={{
                                         startAdornment: <InputAdornment position="start">$</InputAdornment>,
                                     }}
@@ -105,6 +128,10 @@ export default function UploadBill() {
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <DatePicker
                                         label="Service Date"
+                                        onChange={(date) => {
+                                            const dateString = new Date(date).toLocaleDateString()
+                                            setServiceDate(dateString)
+                                          }}
                                         slotProps={{ textField: { fullWidth: true } }}
                                     />
                                 </LocalizationProvider>
